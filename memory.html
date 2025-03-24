@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+        <style>
+            #countDownBanner{
+                text-align: center;
+            }
+            #questionBanner{
+                text-align: center;
+            }
+            #cardsArea{
+                display: grid;
+                justify-content: center; /* 居中 */
+                gap: 10px; /* 卡牌间距 */
+                padding: 10px; /* 增加一点内边距 */
+            }
+            .card {
+                display: inline-block;
+                width: 100px;
+                height: 100px;
+                border: 1px solid black;
+                margin: 5px;
+                text-align: center;
+                line-height: 100px;
+                font-size: 28px;
+                background-color: lightgray;
+            }
+            #controllerBanner{
+                text-align: center;
+                padding: 15px;
+            }
+            #controllerBanner button {
+                margin: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <!--记忆倒计时区-->
+            <div id="countDownBanner">
+                <h2 v-bind:style="{ visibility: isCountingDown ? 'visible' : 'hidden' }">剩余时间：{{countDown}}秒</h2>
+            </div>
+
+            <!--问题描述区-->
+            <div id="questionBanner">
+                <h2 v-bind:style="{ visibility: isRecalling||isEnding ? 'visible' : 'hidden' }">{{question}}</h2>
+            </div>
+
+            <!--卡牌区-->
+            <div id="cardsArea" v-bind:style="{ 'grid-template-columns': gridColumns }">
+                <div v-for="(card, index) in cards.slice(0, size)" class="card" v-on:click="handleCardClick(index)">
+                    <div v-bind:style="{ visibility: isCountingDown||cards[index].isFront ? 'visible' : 'hidden' }">
+                        {{ card.content }}
+                    </div>
+                </div>
+            </div>
+
+            <!--游戏控制区-->
+            <div id="controllerBanner">
+                <button v-bind:disabled="!isPreStarting" v-on:click="startCountDown">
+                    开始记忆
+                </button>
+                <button v-bind:disabled="isPreStarting||isEnding" v-on:click="initGame">结束本局
+                </button>
+                <button v-bind:disabled="!isEnding" v-on:click="initGame">再玩一局
+                </button>
+            </div>
+        </div>
+
+        <script>
+            var vm = new Vue({
+                el: "#app",
+                data: {
+                    // 记忆数量
+                    size: null,
+                    // 倒数秒数
+                    countDown: 1,
+                    // 预开始阶段
+                    isPreStarting: true,
+                    // 判断是否在倒计时
+                    isCountingDown: false,
+                    // 判断是否在回想阶段
+                    isRecalling: false,
+                    // 是否在结束阶段
+                    isEnding: false,
+                    //  Vue 的 data 选项中，this 并不指向 Vue 实例本身，而是指向当前 data 对象。因此，在 data 中直接调用 methods 中的方法（如 this.generateRandomContents）会导致错误。
+                    // 为了在 data 中正确初始化 cards，可以在 created 钩子中初始化 cards
+                    cards: [], // 先初始化为空数组
+                    targetCardIndex: null, // 先设为空
+                    question: '', // 先设为空
+                    countDownTimer: null // 存储倒数定时器 ID
+                },
+
+                computed: {
+                    gridColumns() {
+                        // 根据 size 的值动态计算列数
+                        if (this.size === 4) return "repeat(2, max-content)";
+                        if (this.size === 6) return "repeat(3, max-content)";
+                        if (this.size === 9) return "repeat(3, max-content)";
+                        if (this.size === 12) return "repeat(4, max-content)";
+                        if (this.size === 16) return "repeat(4, max-content)";
+                        return "repeat(4, max-content)"; // 默认 4 列
+                    }
+                },
+
+                created() {
+                    // this.size = 4;
+                    // // 在 created 钩子中初始化 cards
+                    // // .map() 是数组方法，返回一个新数组。作用是遍历数组，将每个元素改造为一个对应的新的元素对象
+                    // // 每次迭代都会生成一个新对象 { content, isFront: false }
+                    // // content 是 对象的键值对简写，等同于{ content: content, isFront: false }
+                    // this.cards = this.generateRandomContents().map(element => ({
+                    //     content: element,
+                    //     isFront: false // 默认卡牌背面朝上
+                    // }));
+                    // this.targetCardIndex = Math.floor(Math.random() * this.size);
+                    // this.question = '找出卡牌 ' + this.cards[this.targetCardIndex].content + '';
+                    this.initGame();
+                },
+
+                methods: {
+                    // 记忆倒计时：使用 setInterval 设置一个定时器，每隔 1 秒执行一次
+                    startCountDown() {
+                        this.isPreStarting = false;
+                        this.isCountingDown = true;
+
+                        // 先清除已有的定时器，避免重复
+                        if (this.countDownTimer) {
+                            // clearInterval() 是 JavaScript 提供的清除 setInterval() 定时器的函数
+                            clearInterval(this.countDownTimer);
+                            this.countDownTimer = null;
+                        }
+
+                        this.countDownTimer = setInterval(() => {
+                            if (this.countDown > 0) {
+                                this.countDown--; // 每秒减一
+                            } else {
+                                clearInterval(this.countDownTimer); // 当 countDown 为 0 时，清除定时器
+                                this.countDownTimer = null;
+
+                                this.isCountingDown = false;
+                                this.isRecalling = true;
+                            }
+                        }, 1000);
+                    },
+
+                    // 初始化游戏
+                    initGame() {
+                        // **在初始化游戏时，先停止 startCountDown() 里的定时器**
+                        if (this.countDownTimer) {
+                            clearInterval(this.countDownTimer);
+                            this.countDownTimer = null;
+                        }
+
+                        this.size = 16;
+                        this.countDown = 1;
+                        this.isPreStarting = true;
+                        this.isCountingDown = false;
+                        this.isRecalling = false;
+                        this.isEnding = false;
+                        this.cards = this.generateRandomContents().map(element => ({
+                            content: element,
+                            isFront: false // 默认卡牌背面朝上
+                        }));
+                        this.targetCardIndex = Math.floor(Math.random() * this.size); // 注意范围别超了
+                        this.question = '找出卡牌 ' + this.cards[this.targetCardIndex].content;
+                        // 打印答案
+                        console.log("targetCardIndex: " + this.targetCardIndex);
+                        // console.log("cards: " + JSON.stringify(this.cards, null, 2))
+                    },
+
+                    // 点击卡牌后切换卡牌状态
+                    reverseCard(index) {
+                        if (this.isRecalling) {
+                            this.cards[index].isFront = !this.cards[index].isFront;
+                        }
+                    },
+
+                    // 点击卡牌后验证结果
+                    checkCard(index) {
+                        if (index === this.targetCardIndex) {
+                            if (this.cards[index].isFront) {
+                                alert("Nice！");
+                                this.isRecalling = false;
+                                this.isEnding = true;
+                            }
+                        }
+                    },
+
+                    // 处理点击卡牌事件
+                    handleCardClick(index) {
+                        this.reverseCard(index); // 先执行 clickCard 逻辑
+                        this.$nextTick(() => {
+                            // this.$nextTick() 确保代码在 Vue DOM 更新队列执行后 执行。但 Vue视图的真正渲染，可能还需要等待下一帧，所以再用 setTimeout(..., 0) 让它在下一帧执行，确保视图已经更新。
+                            setTimeout(() => {
+                                this.checkCard(index);
+                            }, 0);
+                        });
+                    },
+
+                    // 生成随机字母（A-Z）
+                    getRandomLetter() {
+                        const charCode = Math.floor(Math.random() * 26) + 65; // A-Z 的 ASCII 码范围是 65-90
+                        return String.fromCharCode(charCode);
+                    },
+
+                    // 生成 16 个不重复的随机字母
+                    generateRandomContents() {
+                        const contents = new Set(); // 使用 Set 确保值唯一（不重复）
+                        while (contents.size < 16) {
+                            const randomLetter = this.getRandomLetter();
+                            contents.add(randomLetter);
+                        }
+                        return Array.from(contents); // 将 Set 转换为数组
+                    }
+                }
+            });
+        </script>
+
+    </body>
+</html>
