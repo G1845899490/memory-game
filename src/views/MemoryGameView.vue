@@ -12,9 +12,10 @@
 
         <!--卡牌区-->
         <!-- gridColumns返回网格的列数和列宽 -->
-        <div id="cardsArea" v-bind:style="{ 'grid-template-columns': gridColumns }"> 
+        <div id="cardsArea" v-bind:style="{ 'grid-template-columns': gridColumns }">
             <!-- :key="index"：为每个卡牌 <div> 绑定一个唯一的 key，这里使用 index（从 0 到 size-1） -->
-            <div class="card"  v-for="(card, index) in cards.slice(0, size)" :key="index" v-on:click="handleCardClick(index)">
+            <div class="card" v-for="(card, index) in cards.slice(0, size)" :key="index"
+                v-on:click="handleCardClick(index)">
                 <div v-bind:style="{ visibility: cards[index].isFront ? 'visible' : 'hidden' }">
                     {{ card.content }}
                 </div>
@@ -36,28 +37,32 @@
 
 <script>
 export default {
-    name: "MemoryGame",
-    props: {
-        msg: String,
-    },
+    name: 'MemoryGameView',
     el: "#app",
+    props: {
+        size: {
+            type: Number,
+            required: true, 
+            validator: value => Number.isInteger(value) && value > 0 // 确保是正整数
+        }
+    },
     data() {
         return {
-        // data 中的this 并不指向 Vue 实例本身，而是指向当前 data 对象。直接调用 methods 中的方法（如 this.generateRandomContents）会导致错误
-        // 所以可以先将data内属性初始化为null或''，在合适的地方再赋值
-        size: null, // 记忆数量
-        memoryCountDown: null, // 记忆倒计时秒数
-        recallCountDown: null, // 回想倒计时秒数
-        recallTime: null, // 回想时间统计
-        reverseCount: null, // 翻牌次数
-        isPreStarting: false, // 是否在预开始
-        isCountingDown: false, // 是否在倒计时
-        isRecalling: false, // 是否在回想
-        isEnding: false, // 是否在结束阶段
-        cards: [], // 先初始化为空数组
-        targetCardIndex: null, // 答案索引，先设为空
-        question: '', // 问题描述，先设为空
-        countDownTimer: null // 存储倒数定时器 ID，先设为空
+            // data 中的this 并不指向 Vue 实例本身，而是指向当前 data 对象。直接调用 methods 中的方法（如 this.generateRandomContents）会导致错误
+            // 所以可以先将data内属性初始化为null或''，在合适的地方再赋值
+            // size: null, // 记忆数量
+            memoryCountDown: null, // 记忆倒计时秒数
+            recallCountDown: null, // 回想倒计时秒数
+            recallTime: null, // 回想时间统计
+            reverseCount: null, // 翻牌次数
+            isPreStarting: false, // 是否在预开始
+            isCountingDown: false, // 是否在倒计时
+            isRecalling: false, // 是否在回想
+            isEnding: false, // 是否在结束阶段
+            cards: [], // 先初始化为空数组
+            targetCardIndex: null, // 答案索引，先设为空
+            question: '', // 问题描述，先设为空
+            countDownTimer: null // 存储倒数定时器 ID，先设为空
         }
     },
 
@@ -85,7 +90,7 @@ export default {
                 clearInterval(this.countDownTimer);
                 this.countDownTimer = null;
             }
-            this.size = 16;
+            // this.size = 16;
             this.memoryCountDown = 2;
             this.recallCountDown = 2;
             this.recallTime = 0;

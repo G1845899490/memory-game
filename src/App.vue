@@ -1,17 +1,17 @@
 <template>
   <div id="app">
-    <MemoryGame></MemoryGame>
+    <!-- <MemoryGameView/> -->
     <router-view/>
   </div>
 </template>
 
 <script>
-import MemoryGame from "./views/MemoryGame.vue";
+import MemoryGameView from "./views/MemoryGameView.vue";
 
 export default {
   name: "App",
   components: {
-    MemoryGame
+    MemoryGameView
   },
 };
 </script>
