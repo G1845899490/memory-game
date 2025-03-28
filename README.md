@@ -1,5 +1,19 @@
-# memory-game 记忆力训练游戏开发
+# memory-game
 
-## 阶段一
-- 前端：HTML（使用Vue.js）
-- 功能：实现卡牌翻转
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
