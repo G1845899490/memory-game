@@ -1,5 +1,5 @@
 <template>
-    <div id="app">
+    <div class="memory-game">
         <!--倒计时区-->
         <div id="countDownBanner">
             <h2 v-bind:style="{ visibility: isCountingDown ? 'visible' : 'hidden' }">剩余时间：{{ memoryCountDown }}秒</h2>
@@ -31,6 +31,8 @@
             </button>
             <button v-bind:disabled="!isEnding" v-on:click="initGame">再玩一局
             </button>
+            <button v-on:click="goHome">回到首页
+            </button>
         </div>
     </div>
 </template>
@@ -38,11 +40,10 @@
 <script>
 export default {
     name: 'MemoryGameView',
-    el: "#app",
     props: {
         size: {
             type: Number,
-            required: true, 
+            required: true,
             validator: value => Number.isInteger(value) && value > 0 // 确保是正整数
         }
     },
@@ -202,6 +203,14 @@ export default {
                 contents.add(randomLetter);
             }
             return Array.from(contents); // 将 Set 转换为数组
+        },
+
+        goHome() {
+            this.initGame();
+            this.isPreStarting = false;
+            this.$router.push({
+                path: '/'
+            })
         }
     }
 
